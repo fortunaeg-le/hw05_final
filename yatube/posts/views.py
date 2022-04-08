@@ -148,13 +148,13 @@ def follow_index(request):
     posts_list = Post.objects.filter(
         author__following__user=request.user
     )
-    posts_exists = posts_list.exists()
+    post_exists = posts_list.exists()
     paginator = Paginator(posts_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'posts_exists': posts_exists,
+        'post_exists': post_exists,
         'page_obj': page_obj
     }
     return render(request, template, context)

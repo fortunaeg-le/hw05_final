@@ -248,3 +248,40 @@ class ViewTest(TestCase):
                 author=follow_user,
             ).exists()
         )
+
+    def test_follow_index(self):
+        """Проверяем выводимость постов"""
+        user = User.objects.create_user(username='user')
+        follower = User.objects.create_user(username='follower')
+        author = User.objects.create_user(username='author')
+
+        authorized_client = Client()
+        authorized_client.force_login(user)
+        follower_client = Client()
+        follower_client.force_login(follower)
+
+        post = Post.objects.create(
+            text='Текст автора',
+            author=author
+        )
+
+        Follow.objects.create(
+            author=author,
+            user=follower
+        )
+
+        response = authorized_client.get(
+            reverse(
+                'posts:follow_index'
+            )
+        )
+        follower_response = follower_client.get(
+            reverse(
+                'posts:follow_index'
+            )
+        )
+        self.assertFalse(response.context['post_exists'])
+        self.assertEqual(
+            follower_response.context['page_obj'][0].pk,
+            post.pk
+        )

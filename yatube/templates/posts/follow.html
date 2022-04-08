@@ -7,7 +7,7 @@
 {% block content %}
   <div class="container py-5">
     <h1>Посты любимых авторов</h1>
-    {% if posts_exists %}
+    {% if post_exists %}
       {% include "posts/includes/switcher.html" %}
       {% for post in page_obj %}
         <article>
