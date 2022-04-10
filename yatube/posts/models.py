@@ -17,6 +17,10 @@ class Group(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
 
 class Post(models.Model):
     text = models.TextField(
@@ -70,28 +74,34 @@ class Comment(models.Model):
     )
     text = models.TextField(
         verbose_name='Текст комментария',
-        help_text='Введите текст комментария'
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
-        help_text='Дата комментария'
+        verbose_name='Дата комментария'
     )
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
 
 class Follow(models.Model):
     """Модель подписки"""
+    unique_together = ['user', 'author']
     user = models.ForeignKey(
         User,
         related_name='follower',
         on_delete=models.CASCADE,
-        help_text='Подписчик'
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         related_name='following',
         on_delete=models.CASCADE,
-        help_text='Автор'
+        verbose_name='Автор'
     )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'

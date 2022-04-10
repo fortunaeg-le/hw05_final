@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load thumbnail %}
+
 {% block title %}
   {% if is_edit %}
     Редактировать пост
@@ -29,10 +30,13 @@
                   {% for field in form %}
                   <div class="fieldWrapper">
                     {{ field.errors }}
+                    {% if not forloop.first %}<hr>{% endif %}
                     {{ field.label_tag }} {{ field }}
-                    {% if field.help_text %}
-                    <p class="help">{{ field.help_text|safe }}</p>
-                    {% endif %}
+                    <small id="{{ field.id_for_label }}" class="form-text text-muted">
+                      {% if field.help_text %}
+                        <p class="help">{{ field.help_text|safe }}</p>
+                      {% endif %}
+                    </small>
                   </div>
                   {% endfor %}
                   <div class="d-flex justify-content-end">

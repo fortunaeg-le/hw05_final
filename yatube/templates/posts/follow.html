@@ -7,6 +7,7 @@
 {% block content %}
   <div class="container py-5">
     <h1>Посты любимых авторов</h1>
+    {% include "posts/includes/switcher.html" %}
     {% if post_exists %}
       {% include "posts/includes/switcher.html" %}
       {% for post in page_obj %}
@@ -27,12 +28,12 @@
           {% if post.group is not None %}
             <a href="{% url "posts:group_list" post.group.slug %}">все записи группы</a>
           {% endif %}
+          {% if not forloop.last %}<hr>{% endif %}
         </article>
-        {% if not forloop.last %}<hr>{% endif %}
       {% endfor %}
+      {% include 'posts/includes/paginator.html' %}
     {% else %}
       <h5>У вас пока нет подписок(</h5>
     {% endif %}
   </div>
-  {% include 'posts/includes/paginator.html' %}
 {% endblock %}

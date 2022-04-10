@@ -198,7 +198,6 @@ class ViewTest(TestCase):
             text='Проверочный текст',
             author=self.user
         )
-        cache.clear()
         response = self.authorized_client.get(reverse('posts:index'))
         content_1 = response.content
         index_cache.delete()
@@ -225,7 +224,6 @@ class ViewTest(TestCase):
                 author=follow_user
             ).exists()
         )
-        follow_user.delete()
 
     def test_unfollowing_from_author(self):
         """Проверка возможности отписаться"""
@@ -249,14 +247,11 @@ class ViewTest(TestCase):
             ).exists()
         )
 
-    def test_follow_index(self):
+    def test_posts_for_folower_in_follow_index(self):
         """Проверяем выводимость постов"""
-        user = User.objects.create_user(username='user')
         follower = User.objects.create_user(username='follower')
         author = User.objects.create_user(username='author')
 
-        authorized_client = Client()
-        authorized_client.force_login(user)
         follower_client = Client()
         follower_client.force_login(follower)
 
@@ -270,18 +265,38 @@ class ViewTest(TestCase):
             user=follower
         )
 
+        response = follower_client.get(
+            reverse(
+                'posts:follow_index'
+            )
+        )
+        self.assertEqual(
+            response.context['page_obj'][0].pk,
+            post.pk
+        )
+
+    def test_posts_for_unfollow_in_follow_index(self):
+        """Тестируем, что посты у неподписчиков не выводяться"""
+        user = User.objects.create_user(username='user')
+        follower = User.objects.create_user(username='follower')
+        author = User.objects.create_user(username='author')
+
+        follower_client = Client()
+        follower_client.force_login(follower)
+        authorized_client = Client()
+        authorized_client.force_login(user)
+        Post.objects.create(
+            text='Текст автора',
+            author=author
+        )
+
+        Follow.objects.create(
+            author=author,
+            user=follower
+        )
         response = authorized_client.get(
             reverse(
                 'posts:follow_index'
             )
         )
-        follower_response = follower_client.get(
-            reverse(
-                'posts:follow_index'
-            )
-        )
-        self.assertFalse(response.context['post_exists'])
-        self.assertEqual(
-            follower_response.context['page_obj'][0].pk,
-            post.pk
-        )
+        self.assertFalse(response.context['page_obj'])

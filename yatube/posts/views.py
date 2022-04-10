@@ -2,10 +2,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import (
+    require_http_methods,
+    require_GET,
+    require_POST)
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, Comment, Follow
+from .models import Group, Post, Follow
 
 User = get_user_model()
 
@@ -25,7 +28,7 @@ def index(request):
     return render(request, template, context)
 
 
-@require_http_methods(["GET"])
+@require_GET
 def group_posts(request, slug):
 
     template = 'posts/group_list.html'
@@ -44,7 +47,7 @@ def group_posts(request, slug):
     return render(request, template, context=context)
 
 
-@require_http_methods(["GET"])
+@require_GET
 def profile(request, username):
 
     template = 'posts/profile.html'
@@ -61,11 +64,15 @@ def profile(request, username):
             user=request.user,
             author=author,
         )
+    i_not_auth = True
+    if request.user == author:
+        i_not_auth = False
     context = {
         'author': author,
         'following': following,
         'page_obj': page_obj,
         'count': count,
+        'i_not_auth': i_not_auth,
     }
     return render(request, template, context)
 
@@ -75,7 +82,7 @@ def post_detail(request, post_id):
 
     template = 'posts/post_detail.html'
     post = get_object_or_404(Post, pk=post_id)
-    comments = Comment.objects.filter(post=post_id)
+    comments = post.comments.all()
     form = CommentForm()
     context = {
         'post': post,
@@ -129,7 +136,7 @@ def post_edit(request, post_id):
 
 
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_POST
 def add_comment(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     form = CommentForm(request.POST or None)
@@ -142,14 +149,14 @@ def add_comment(request, post_id):
 
 
 @login_required
-@require_http_methods(['GET'])
+@require_GET
 def follow_index(request):
     template = 'posts/follow.html'
-    posts_list = Post.objects.filter(
+    posts = Post.objects.filter(
         author__following__user=request.user
     )
-    post_exists = posts_list.exists()
-    paginator = Paginator(posts_list, 10)
+    post_exists = posts.exists()
+    paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
